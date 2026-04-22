@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API-MS - Menu</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 API-MS</h1>
+            <div>
+                <span class="user-greeting" id="userGreeting"></span>
+                <button class="logout-btn" onclick="logout()">Sair</button>
+            </div>
+        </div>
+
+        <div id="successMessage" class="message success"></div>
+        <div id="errorMessage" class="message error"></div>
+
+        <h2>Menu Principal</h2>
+        <div class="menu-grid">
+            <a href="usuarios.html" class="menu-card">
+                <h3>👥</h3>
+                <p>Gerenciar Usuários</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(message, type) {
+            const container = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
+            container.textContent = message;
+            container.style.display = 'block';
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            showMessage('Saiu com sucesso', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // Verificar se está autenticado
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+
+            if (!token || !username) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userGreeting').textContent = `Bem-vindo, ${username}!`;
+        };
+    </script>
+</body>
+</html>
