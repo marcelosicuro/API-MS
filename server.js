@@ -51,6 +51,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'API funcionando!' });
 });
 
+//#region Usuários
 // Registro de usuário
 app.post('/register', async (req, res) => {
   const { username, password, name, email } = req.body;
@@ -163,6 +164,84 @@ app.delete('/users/:id', authenticateToken, (req, res) => {
     res.status(500).json({ error: 'Erro ao deletar usuário' });
   }
 });
+//#endregion
+
+//#region Objetos
+
+// Listar objetos
+app.get('/objeto', authenticateToken, (req, res) => {
+  try {
+    const objeto = db.prepare('SELECT id, nomeobjeto FROM objeto').all();
+    res.json(objeto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao buscar objetos' });
+  }
+});
+
+// Registro de objeto
+app.post('/incluirObjeto', async (req, res) => {
+  const { nomeobjeto } = req.body;
+
+  if (!nomeobjeto) {
+    return res.status(400).json({ error: 'Nome do objeto é obrigatório' });
+  }
+
+  try {
+    const stmt = db.prepare('INSERT INTO objeto (nomeobjeto) VALUES (?)');
+    const result = stmt.run(nomeobjeto);
+    res.status(201).json({ message: 'Objeto registrado com sucesso', id: result.lastInsertRowid });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro interno ao registrar objeto' });
+  }
+});
+
+// Deletar objeto
+app.delete('/objeto/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const stmt = db.prepare('DELETE FROM objeto WHERE id = ?');
+    const result = stmt.run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Objeto não encontrado' });
+    }
+
+    res.json({ message: 'Objeto deletado com sucesso', id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao deletar objeto' });
+  }
+});
+
+// Atualizar objeto
+app.put('/objeto/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const { nomeobjeto } = req.body;
+
+  if (!nomeobjeto) {
+    return res.status(400).json({ error: 'Nome do objeto é obrigatório' });
+  }
+
+  try {
+    const stmt = db.prepare('UPDATE objeto SET nomeobjeto = ? WHERE id = ?');
+    const result = stmt.run(nomeobjeto, id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Objeto não encontrado' });
+    }
+
+    res.json({ message: 'Objeto atualizado com sucesso', id, nomeobjeto });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao atualizar objeto' });
+  }
+});
+//#endregion
+
+
 
 // Rota não encontrada
 app.use((req, res) => {
