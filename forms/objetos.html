@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API-MS - Objetos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header-menu">
+            <h1>📦 Objetos</h1>
+            <div class="header-actions">
+                <a href="menu.html" class="back-btn">← Voltar</a>
+                <button class="logout-btn" onclick="logout()">Sair</button>
+            </div>
+        </div>
+
+        <div id="successMessage" class="message success"></div>
+        <div id="errorMessage" class="message error"></div>
+
+        <h2>Gerenciar Objetos</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button class="load-btn" style="flex: 1;" onclick="listObjetos()">Carregar Objetos</button>
+            <button class="load-btn" style="flex: 1; background: #27ae60;" onclick="openCreateModal()">➕ Criar Novo</button>
+        </div>
+        <div class="user-list" id="objetoList"></div>
+    </div>
+
+    <!-- Modal para editar objeto -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Editar Objeto</h2>
+            <div class="form-group">
+                <label>Nome:</label>
+                <input type="text" id="editNomeObjeto" placeholder="Digite o nome do objeto">
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn-save" onclick="saveObjeto()">Salvar</button>
+                <button class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para criar novo objeto -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateModal()">&times;</span>
+            <h2>Criar Novo Objeto/h2>
+            
+            <div class="form-group">
+                <label>Nome:</label>
+                <input type="text" id="createNomeObjeto" placeholder="Digite o nome do objeto">
+            </div>
+           
+            <div class="modal-buttons">
+                <button class="btn-save" onclick="createObjeto()">Criar</button>
+                <button class="btn-cancel" onclick="closeCreateModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let currentEditObjetoId = null;
+
+        function showMessage(message, type) {
+            const container = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
+            container.textContent = message;
+            container.style.display = 'block';
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 3000);
+        }
+
+        async function listObjetos() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                showMessage('Token expirado. Faça login novamente.', 'error');
+                setTimeout(() => window.location.href = 'index.html', 2000);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/objeto`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const objetos = await response.json();
+
+                if (response.ok) {
+                    let html = '';
+
+                    objetos.forEach(objeto => {
+                        html += `
+                            <div class="user-item">
+                                <div class="user-info">
+                                    <p><strong>${objeto.nomeobjeto}</strong></p>
+                                    <p>ID: ${objeto.id}</p>
+                                    
+                                </div>
+                                <div class="user-actions">
+                                    <button class="btn-edit" onclick="openEditModal(${objeto.id}, '${objeto.nomeobjeto}')">Editar</button>
+                                    <button class="btn-delete" onclick="deleteObjeto(${objeto.id})">Deletar</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('objetoList').innerHTML = html;
+                    showMessage(`${objetos.length} objeto(s) carregado(s)`, 'success');
+                } else {
+                    showMessage('Erro ao carregar objetos', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão: ' + error.message, 'error');
+            }
+        }
+
+        function openEditModal(objetoId, objetoNomeObjeto) {
+            currentEditObjetoId = objetoId;
+            document.getElementById('editNomeObjeto').value = objetoNomeObjeto;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditUserId = null;
+        }
+
+        function openCreateModal() {
+            document.getElementById('createNomeObjeto').value = '';
+            document.getElementById('createModal').style.display = 'block';
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+        }
+
+        async function createObjeto() {
+            const nomeObjeto = document.getElementById('createNomeObjeto').value.trim();
+
+            if (!nomeObjeto) {
+                showMessage('Preencha o nome do objeto', 'error');
+                return;
+            }
+
+
+            if (!nomeObjeto) {
+                showMessage('Preencha todos o nome do objeto', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/incluirObjeto`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nomeobjeto: nomeObjeto })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Objeto criado com sucesso!', 'success');
+                    closeCreateModal();
+                    listObjetos();
+                } else {
+                    showMessage(data.error || 'Erro ao criar objeto', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão: ' + error.message, 'error');
+            }
+        }
+
+        async function saveObjeto() {
+            const token = localStorage.getItem('token');
+            const newNomeObjeto = document.getElementById('editNomeObjeto').value;
+
+            if (!newNomeObjeto) {
+                showMessage('Digite um nome válido', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/objeto/${currentEditObjetoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nomeobjeto: newNomeObjeto })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Objeto atualizado com sucesso!', 'success');
+                    closeEditModal();
+                    listObjetos();
+                } else {
+                    showMessage(data.error || 'Erro ao atualizar objeto', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteObjeto(objetoId) {
+            if (!confirm('Tem certeza que deseja deletar este objeto?')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_URL}/objeto/${objetoId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Objeto deletado com sucesso!', 'success');
+                    listObjetos();
+                } else {
+                    showMessage(data.error || 'Erro ao deletar objeto', 'error');
+                }
+            } catch (error) {
+                showMessage('Erro de conexão: ' + error.message, 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            showMessage('Saiu com sucesso', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const createModal = document.getElementById('createModal');
+            if (event.target == editModal) {
+                editModal.style.display = 'none';
+            }
+            if (event.target == createModal) {
+                createModal.style.display = 'none';
+            }
+        };
+
+        // Permitir Enter para criar usuário
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const createModal = document.getElementById('createModal');
+                if (createModal && createModal.style.display === 'block') {
+                    createUser();
+                }
+            }
+        });
+
+        // Verificar se está autenticado
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+
+            if (!token || !username) {
+                window.location.href = 'index.html';
+                return;
+            }
+        };
+    </script>
+</body>
+</html>
