@@ -16,7 +16,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const db = new Database('users.db');
+const db = new Database('db-api.db');
 
 // Criação da tabela
 db.exec(`
