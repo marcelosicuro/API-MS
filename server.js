@@ -171,7 +171,7 @@ app.delete('/users/:id', authenticateToken, (req, res) => {
 // Listar objetos
 app.get('/objeto', authenticateToken, (req, res) => {
   try {
-    const objeto = db.prepare('SELECT id, nomeobjeto FROM objeto').all();
+    const objeto = db.prepare('SELECT id, nomeobjeto, quantidade, valor FROM objeto').all();
     res.json(objeto);
   } catch (error) {
     console.error(error);
@@ -179,9 +179,20 @@ app.get('/objeto', authenticateToken, (req, res) => {
   }
 });
 
+app.get('/valorObjeto', authenticateToken, (req, res) => {
+  try {
+    const objeto = db.prepare('SELECT SUM((o.valor * o.quantidade)) as valortotalobjeto FROM objeto o').all();
+    res.json(objeto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao buscar objetos' });
+  }
+});
+
+
 // Registro de objeto
 app.post('/incluirObjeto', async (req, res) => {
-  const { nomeobjeto } = req.body;
+  const { nomeobjeto, quantidade, valor } = req.body;
 
   if (!nomeobjeto) {
     return res.status(400).json({ error: 'Nome do objeto é obrigatório' });
@@ -219,21 +230,21 @@ app.delete('/objeto/:id', authenticateToken, (req, res) => {
 // Atualizar objeto
 app.put('/objeto/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
-  const { nomeobjeto } = req.body;
+  const { nomeobjeto, quantidade, valor } = req.body;
 
   if (!nomeobjeto) {
     return res.status(400).json({ error: 'Nome do objeto é obrigatório' });
   }
 
   try {
-    const stmt = db.prepare('UPDATE objeto SET nomeobjeto = ? WHERE id = ?');
-    const result = stmt.run(nomeobjeto, id);
+    const stmt = db.prepare('UPDATE objeto SET nomeobjeto = ?, quantidade = ?, valor = ? WHERE id = ?');
+    const result = stmt.run(nomeobjeto, quantidade, valor, id);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Objeto não encontrado' });
     }
 
-    res.json({ message: 'Objeto atualizado com sucesso', id, nomeobjeto });
+    res.json({ message: 'Objeto atualizado com sucesso', id, nomeobjeto, quantidade, valor });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erro ao atualizar objeto' });
