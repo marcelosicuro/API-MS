@@ -20,9 +20,16 @@
         <div id="errorMessage" class="message error"></div>
 
         <h2>Gerenciar Objetos</h2>
+
+        <div class="form-group">
+            <label>Filtro:</label>
+            <input type="text" id="filtro" placeholder="Filtrar...">
+        </div>
+        
+        
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <button class="load-btn" style="flex: 1;" onclick="listObjetos()">Carregar Objetos</button>
-            <button class="load-btn" style="flex: 1; background: #27ae60;" onclick="openCreateModal()">➕ Criar Novo</button>
+            <button class="load-btn" style="flex: 1;" onclick="listObjetos()">Filtrar</button>
+            <button class="load-btn" style="flex: 1; background: #27ae60;" onclick="openCreateModal()">➕ Novo</button>
         </div>
         <div class="user-list" id="objetoList"></div>
     </div>
@@ -35,6 +42,14 @@
             <div class="form-group">
                 <label>Nome:</label>
                 <input type="text" id="editNomeObjeto" placeholder="Digite o nome do objeto">
+            </div>
+            <div class="form-group">
+                <label>Quantidade:</label>
+                <input type="text" id="editQuantidade" placeholder="Digite a quantidade do objeto">
+            </div>
+            <div class="form-group">
+                <label>Valor:</label>
+                <input type="text" id="editValor" placeholder="Digite o valor do objeto">
             </div>
             
             <div class="modal-buttons">
@@ -54,7 +69,15 @@
                 <label>Nome:</label>
                 <input type="text" id="createNomeObjeto" placeholder="Digite o nome do objeto">
             </div>
-           
+
+            <div class="form-group">
+                <label>Quantidade:</label>
+                <input type="text" id="createQuantidade" placeholder="Digite a quantidade do objeto">
+            </div>
+            <div class="form-group">
+                <label>Valor:</label>
+                <input type="text" id="createValor" placeholder="Digite o valor do objeto">
+            </div>
             <div class="modal-buttons">
                 <button class="btn-save" onclick="createObjeto()">Criar</button>
                 <button class="btn-cancel" onclick="closeCreateModal()">Cancelar</button>
@@ -75,7 +98,7 @@
             }, 3000);
         }
 
-        async function listObjetos() {
+        async function listObjetos() {  
             const token = localStorage.getItem('token');
 
             if (!token) {
@@ -85,8 +108,11 @@
             }
 
             try {
+                const filtro = document.getElementById('filtro').value.trim();
                 const response = await fetch(`${API_URL}/objeto`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filtro })
                 });
 
                 const objetos = await response.json();
@@ -100,10 +126,18 @@
                                 <div class="user-info">
                                     <p><strong>${objeto.nomeobjeto}</strong></p>
                                     <p>ID: ${objeto.id}</p>
-                                    
+                                    <p>Quantidade: ${Number(objeto.quantidade).toLocaleString("pt-BR", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                        })}</p>
+                                    <p class="user-value">Valor: ${Number(objeto.valor).toLocaleString("pt-BR", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                        })}</p>
+
                                 </div>
                                 <div class="user-actions">
-                                    <button class="btn-edit" onclick="openEditModal(${objeto.id}, '${objeto.nomeobjeto}')">Editar</button>
+                                    <button class="btn-edit" onclick="openEditModal(${objeto.id}, '${objeto.nomeobjeto}', '${objeto.quantidade}', '${objeto.valor}')">Editar</button>
                                     <button class="btn-delete" onclick="deleteObjeto(${objeto.id})">Deletar</button>
                                 </div>
                             </div>
@@ -119,9 +153,18 @@
             }
         }
 
-        function openEditModal(objetoId, objetoNomeObjeto) {
+        function openEditModal(objetoId, objetoNomeObjeto, objetoQuantidade, objetoValor) {
             currentEditObjetoId = objetoId;
             document.getElementById('editNomeObjeto').value = objetoNomeObjeto;
+            document.getElementById('editQuantidade').value =   Number(objetoQuantidade).toLocaleString("pt-BR", {
+                                                                    minimumFractionDigits: 2,
+                                                                    maximumFractionDigits: 2
+                                                                });
+
+            document.getElementById('editValor').value =   Number(objetoValor).toLocaleString("pt-BR", {
+                                                                    minimumFractionDigits: 2,
+                                                                    maximumFractionDigits: 2
+                                                                });
             document.getElementById('editModal').style.display = 'block';
         }
 
@@ -132,6 +175,8 @@
 
         function openCreateModal() {
             document.getElementById('createNomeObjeto').value = '';
+            document.getElementById('createQuantidade').value = '';
+            document.getElementById('createValor').value = '';
             document.getElementById('createModal').style.display = 'block';
         }
 
@@ -141,6 +186,8 @@
 
         async function createObjeto() {
             const nomeObjeto = document.getElementById('createNomeObjeto').value.trim();
+            const quantidade = document.getElementById('createQuantidade').value.trim();
+            const valor = document.getElementById('createValor').value.trim();
 
             if (!nomeObjeto) {
                 showMessage('Preencha o nome do objeto', 'error');
@@ -157,7 +204,7 @@
                 const response = await fetch(`${API_URL}/incluirObjeto`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nomeobjeto: nomeObjeto })
+                    body: JSON.stringify({ nomeobjeto: nomeObjeto, quantidade: quantidade, valor: valor })
                 });
 
                 const data = await response.json();
@@ -177,6 +224,8 @@
         async function saveObjeto() {
             const token = localStorage.getItem('token');
             const newNomeObjeto = document.getElementById('editNomeObjeto').value;
+            const newQuantidade = document.getElementById('editQuantidade').value;
+            const newValor = document.getElementById('editValor').value;
 
             if (!newNomeObjeto) {
                 showMessage('Digite um nome válido', 'error');
@@ -190,7 +239,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ nomeobjeto: newNomeObjeto })
+                    body: JSON.stringify({ nomeobjeto: newNomeObjeto, quantidade: newQuantidade, valor: newValor })
                 });
 
                 const data = await response.json();

@@ -168,10 +168,14 @@ app.delete('/users/:id', authenticateToken, (req, res) => {
 
 //#region Objetos
 
-// Listar objetos
-app.get('/objeto', authenticateToken, (req, res) => {
+// Listar objetos com filtro via POST
+app.post('/objeto', authenticateToken, (req, res) => {
   try {
-    const objeto = db.prepare('SELECT id, nomeobjeto, quantidade, valor FROM objeto').all();
+    const { filtro } = req.body; // agora funciona, pois é POST
+    const objeto = db.prepare(
+      'SELECT id, nomeobjeto, quantidade, valor FROM objeto WHERE nomeobjeto LIKE ?'
+    ).all(`%${filtro || ''}%`);
+    
     res.json(objeto);
   } catch (error) {
     console.error(error);
@@ -179,13 +183,14 @@ app.get('/objeto', authenticateToken, (req, res) => {
   }
 });
 
+
 app.get('/valorObjeto', authenticateToken, (req, res) => {
   try {
     const objeto = db.prepare('SELECT SUM((o.valor * o.quantidade)) as valortotalobjeto FROM objeto o').all();
     res.json(objeto);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Erro ao buscar objetos' });
+    res.status(500).json({ error: 'Erro ao somar valor dos objetos' });
   }
 });
 
@@ -199,8 +204,8 @@ app.post('/incluirObjeto', async (req, res) => {
   }
 
   try {
-    const stmt = db.prepare('INSERT INTO objeto (nomeobjeto) VALUES (?)');
-    const result = stmt.run(nomeobjeto);
+    const stmt = db.prepare('INSERT INTO objeto (nomeobjeto, quantidade, valor) VALUES (?, ?, ?)');
+    const result = stmt.run(nomeobjeto, quantidade, valor);
     res.status(201).json({ message: 'Objeto registrado com sucesso', id: result.lastInsertRowid });
   } catch (error) {
     console.error(error);
@@ -252,6 +257,23 @@ app.put('/objeto/:id', authenticateToken, (req, res) => {
 });
 //#endregion
 
+
+
+
+
+app.post('/incluirLog', async (req, res) => {
+  const { ip, data} = req.body;
+
+  
+  try {
+    const stmt = db.prepare('INSERT INTO log (ip, data) VALUES (?, ?)');
+    const result = stmt.run(ip, data);
+    res.status(201).json({ message: 'Log registrado com sucesso', id: result.lastInsertRowid });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro interno ao registrar log' });
+  }
+});
 
 
 // Rota não encontrada
