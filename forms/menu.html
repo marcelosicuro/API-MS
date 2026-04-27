@@ -47,6 +47,7 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('username');
+            localStorage.removeItem('name');
             showMessage('Saiu com sucesso', 'success');
             setTimeout(() => {
                 window.location.href = 'index.html';
@@ -57,13 +58,14 @@
         window.onload = function() {
             const token = localStorage.getItem('token');
             const username = localStorage.getItem('username');
+            const name = localStorage.getItem('name');
 
             if (!token || !username) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            document.getElementById('userGreeting').textContent = `Bem-vindo, ${username}!`;
+            document.getElementById('userGreeting').textContent = `Bem-vindo, ${name}!`;
         };
     </script>
 </body>

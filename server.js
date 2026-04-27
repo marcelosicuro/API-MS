@@ -104,7 +104,7 @@ app.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
-    res.json({ message: 'Login realizado com sucesso', token });
+    res.json({ message: 'Login realizado com sucesso', token});
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erro interno no login' });
@@ -119,6 +119,17 @@ app.get('/users', authenticateToken, (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erro ao buscar usuários' });
+  }
+});
+
+// Listar usuários com
+app.get('/getNomeUsuario/:username', authenticateToken, (req, res) => {
+  try {
+    const usuario = db.prepare('SELECT name FROM users WHERE username = ?').get(req.params.username);
+    res.json(usuario);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao buscar o nome do usuário' });
   }
 });
 
