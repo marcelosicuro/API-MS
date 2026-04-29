@@ -125,7 +125,7 @@ app.get('/users', authenticateToken, (req, res) => {
 // Listar usuários com
 app.get('/getNomeUsuario/:username', authenticateToken, (req, res) => {
   try {
-    const usuario = db.prepare('SELECT name FROM users WHERE username = ?').get(req.params.username);
+    const usuario = db.prepare('SELECT id, name FROM users WHERE username = ?').get(req.params.username);
     res.json(usuario);
   } catch (error) {
     console.error(error);
@@ -273,12 +273,12 @@ app.put('/objeto/:id', authenticateToken, (req, res) => {
 
 
 app.post('/incluirLog', async (req, res) => {
-  const { ip, data} = req.body;
+  const { ip, data, pagina, user} = req.body;
 
   
   try {
-    const stmt = db.prepare('INSERT INTO log (ip, data) VALUES (?, ?)');
-    const result = stmt.run(ip, data);
+    const stmt = db.prepare('INSERT INTO log (ip, data, pagina, user) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(ip, data, pagina, user);
     res.status(201).json({ message: 'Log registrado com sucesso', id: result.lastInsertRowid });
   } catch (error) {
     console.error(error);

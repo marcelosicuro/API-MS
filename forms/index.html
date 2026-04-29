@@ -144,12 +144,7 @@
             }
 
             try {
-                const responseLog = await fetch(`${API_URL}/incluirLog`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: window.location.hostname, data: new Date() })
-                });
-
+                
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -162,13 +157,22 @@
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${data.token}`, 'Content-Type': 'application/json' }
                 });
+
                 const dataUsuario = await res.json();
 
                 if (response.ok) {
+
+                    const responseLog = await fetch(`${API_URL}/incluirLog`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: window.location.hostname, data: new Date(), pagina: 'Login', user: dataUsuario.id})
+                    });
+
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('username', username);
                     localStorage.setItem('name', dataUsuario.name);                   
-                    
+                    localStorage.setItem('userId', dataUsuario.id);
+
                     showMessage('Login realizado com sucesso!', 'success');
                     setTimeout(() => {
                         window.location.href = 'menu.html';

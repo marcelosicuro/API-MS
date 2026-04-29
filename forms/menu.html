@@ -48,6 +48,7 @@
             localStorage.removeItem('token');
             localStorage.removeItem('username');
             localStorage.removeItem('name');
+            localStorage.removeItem('userId');
             showMessage('Saiu com sucesso', 'success');
             setTimeout(() => {
                 window.location.href = 'index.html';
@@ -59,6 +60,7 @@
             const token = localStorage.getItem('token');
             const username = localStorage.getItem('username');
             const name = localStorage.getItem('name');
+            const userId = localStorage.getItem('userId');
 
             if (!token || !username) {
                 window.location.href = 'index.html';
@@ -66,7 +68,9 @@
             }
 
             document.getElementById('userGreeting').textContent = `Bem-vindo, ${name}!`;
+           
         };
+
     </script>
 </body>
 </html>

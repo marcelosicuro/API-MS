@@ -279,7 +279,7 @@ button:hover {
 .menu-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 30px;
+    padding: 20px;
     border-radius: 10px;
     text-decoration: none;
     transition: transform 0.3s, box-shadow 0.3s;
@@ -295,7 +295,7 @@ button:hover {
 .menu-card p {
     margin: 0;
     opacity: 0.9;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 /* ===== USUÁRIOS ===== */
