@@ -1,2 +1,3 @@
 node_modules/
-db-api.db
+.vscode/launch.json
+.DS_Store
