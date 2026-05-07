@@ -21,9 +21,9 @@
 
         <h2>Menu Principal</h2>
         <div class="menu-grid">
-            <a href="usuarios.html" class="menu-card">
+            <a href="operadores.html" class="menu-card">
                 <h3>👥</h3>
-                <p>Gerenciar Usuários</p>
+                <p>Gerenciar Operadores</p>
             </a>
         </div>
         <div class="menu-grid">
@@ -46,31 +46,35 @@
 
         function logout() {
             localStorage.removeItem('token');
-            localStorage.removeItem('username');
+            localStorage.removeItem('login');
             localStorage.removeItem('name');
             localStorage.removeItem('userId');
-            showMessage('Saiu com sucesso', 'success');
+            
+            showMessage('Logout realizado com sucesso!', 'success');
+            
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 1500);
+            }, 1200);
         }
 
-        // Verificar se está autenticado
+        // Verificar autenticação e exibir saudação
         window.onload = function() {
             const token = localStorage.getItem('token');
-            const username = localStorage.getItem('username');
+            const login = localStorage.getItem('login');
             const name = localStorage.getItem('name');
-            const userId = localStorage.getItem('userId');
 
-            if (!token || !username) {
+            if (!token || !login) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            document.getElementById('userGreeting').textContent = `Bem-vindo, ${name}!`;
-           
+            // Saudação personalizada
+            if (name) {
+                document.getElementById('userGreeting').textContent = `Bem-vindo, ${name}!`;
+            } else {
+                document.getElementById('userGreeting').textContent = `Bem-vindo!`;
+            }
         };
-
     </script>
 </body>
 </html>

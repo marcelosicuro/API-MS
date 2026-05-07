@@ -17,8 +17,8 @@
             <h1>🔐 MS-LAB</h1>
             <h2>Entrar</h2>
             <div class="form-group">
-                <label>Usuário:</label>
-                <input type="text" id="loginUsername" placeholder="Digite seu usuário">
+                <label>Login:</label>
+                <input type="text" id="loginField" placeholder="Digite seu login">
             </div>
             <div class="form-group">
                 <label>Senha:</label>
@@ -30,18 +30,18 @@
 
         <!-- TELA 2: REGISTRO -->
         <div id="registerScreen" class="screen">
-            <h1>📝 API-MS</h1>
+            <h1>📝 MS-LAB</h1>
             <h2>Criar Conta</h2>
             <div class="form-group">
-                <label>Usuário:</label>
-                <input type="text" id="registerUsername" placeholder="Digite seu usuário">
+                <label>Login:</label>
+                <input type="text" id="registerLogin" placeholder="Digite seu login">
             </div>
             <div class="form-group">
                 <label>Senha:</label>
                 <input type="password" id="registerPassword" placeholder="Digite sua senha">
             </div>
             <div class="form-group">
-                <label>Nome:</label>
+                <label>Nome Completo:</label>
                 <input type="text" id="registerName" placeholder="Digite seu nome">
             </div>
             <div class="form-group">
@@ -67,46 +67,28 @@
             const container = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
             container.textContent = message;
             container.style.display = 'block';
-            setTimeout(() => {
-                container.style.display = 'none';
-            }, 3000);
+            setTimeout(() => container.style.display = 'none', 3000);
         }
 
-        async function checkUsernameAvailability(username) {
-            try {
-                const response = await fetch(`${API_URL}/check-username/${username}`);
-                const data = await response.json();
-                return !data.exists;
-            } catch (error) {
-                return true; // Se não conseguir verificar, permite continuar
-            }
-        }
-
+        // ====================== REGISTRO ======================
         async function register() {
-            const username = document.getElementById('registerUsername').value.trim();
-            const password = document.getElementById('registerPassword').value.trim();
-            const name = document.getElementById('registerName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
+            const login   = document.getElementById('registerLogin').value.trim();
+            const senha   = document.getElementById('registerPassword').value.trim();
+            const nome    = document.getElementById('registerName').value.trim();
+            const email   = document.getElementById('registerEmail').value.trim();
 
-            if (!username || !password || !name || !email) {
+
+            if (!login || !senha || !nome || !email) {
                 showMessage('Preencha todos os campos', 'error');
                 return;
             }
 
-            if (username.length < 3) {
-                showMessage('Username deve ter no mínimo 3 caracteres', 'error');
+            if (login.length < 3) {
+                showMessage('Login deve ter no mínimo 3 caracteres', 'error');
                 return;
             }
-
-            if (password.length < 6) {
+            if (senha.length < 6) {
                 showMessage('Senha deve ter no mínimo 6 caracteres', 'error');
-                return;
-            }
-
-            // Verificar se username já existe
-            const isAvailable = await checkUsernameAvailability(username);
-            if (!isAvailable) {
-                showMessage('Username já cadastrado. Tente outro.', 'error');
                 return;
             }
 
@@ -114,17 +96,19 @@
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, name, email })
+                    body: JSON.stringify({ login, senha, nome, email})
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    showMessage('Usuário registrado com sucesso! Agora faça login.', 'success');
-                    document.getElementById('registerUsername').value = '';
+                    showMessage('Operador registrado com sucesso! Faça login.', 'success');
+                    // Limpa os campos
+                    document.getElementById('registerLogin').value = '';
                     document.getElementById('registerPassword').value = '';
                     document.getElementById('registerName').value = '';
                     document.getElementById('registerEmail').value = '';
+
                     setTimeout(() => showScreen('loginScreen'), 2000);
                 } else {
                     showMessage(data.error || 'Erro ao registrar', 'error');
@@ -134,58 +118,69 @@
             }
         }
 
+        // ====================== LOGIN ======================
         async function login() {
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
+            const login    = document.getElementById('loginField').value.trim();
+            const senha    = document.getElementById('loginPassword').value.trim();
 
-            if (!username || !password) {
-                showMessage('Preencha usuário e senha', 'error');
+            if (!login || !senha) {
+                showMessage('Preencha login e senha', 'error');
                 return;
             }
 
             try {
-                
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ login, senha })
                 });
 
                 const data = await response.json();
 
-                const res = await fetch(`${API_URL}/getNomeUsuario/${username}`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${data.token}`, 'Content-Type': 'application/json' }
-                });
-
-                const dataUsuario = await res.json();
-
                 if (response.ok) {
-
-                    const responseLog = await fetch(`${API_URL}/incluirLog`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: window.location.hostname, data: new Date(), pagina: 'Login', user: dataUsuario.id})
+                    // Buscar nome do operador
+                    const resUsuario = await fetch(`${API_URL}/getNomeUsuario/${login}`, {
+                        method: 'GET',
+                        headers: { 
+                            'Authorization': `Bearer ${data.token}`,
+                            'Content-Type': 'application/json' 
+                        }
                     });
 
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('name', dataUsuario.name);                   
-                    localStorage.setItem('userId', dataUsuario.id);
+                    const usuario = await resUsuario.json();
 
+                    // Registrar Log
+                    await fetch(`${API_URL}/incluirLog`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            ip: window.location.hostname, 
+                            data: new Date().toISOString(), 
+                            pagina: 'Login', 
+                            operador: login
+                        })
+                    });
+
+                    // Salvar no localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('login', login);
+                    localStorage.setItem('name', usuario.nome);
+                    
                     showMessage('Login realizado com sucesso!', 'success');
+
                     setTimeout(() => {
                         window.location.href = 'menu.html';
                     }, 1500);
+
                 } else {
-                    showMessage(data.error || 'Erro ao fazer login', 'error');
+                    showMessage(data.error || 'Credenciais inválidas', 'error');
                 }
             } catch (error) {
                 showMessage('Erro de conexão: ' + error.message, 'error');
             }
         }
 
-        // Verificar se já está autenticado
+        // Verificar se já está logado
         window.onload = function() {
             if (localStorage.getItem('token')) {
                 window.location.href = 'menu.html';
