@@ -91,9 +91,22 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// ====================== Operadores ======================
+
 app.get('/operador', authenticateToken, async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM operador');
+    const filtro = req.query.filtro || '';
+
+    const result = await db.query(
+      `SELECT id, login, nome, email, codigo 
+       FROM operador 
+       WHERE nome ILIKE $1 
+          OR login ILIKE $1 
+          OR email ILIKE $1
+       ORDER BY nome`,
+      [`%${filtro}%`]
+    );
+
     res.json(result.rows);
   } catch (error) {
     console.error(error);

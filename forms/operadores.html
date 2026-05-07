@@ -21,12 +21,28 @@
 
         <h2>Gerenciar Operadores</h2>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <button class="load-btn" style="flex: 1;" onclick="listOperadores()">🔄 Carregar Operadores</button>
-            <button class="load-btn" style="flex: 1; background: #27ae60;" onclick="openCreateModal()">➕ Novo Operador</button>
+        <!-- Filtro -->
+        <div class="mb-3">
+            <input 
+                type="text" 
+                class="form-control" 
+                id="filtro" 
+                placeholder="Filtrar por nome, login ou email..."
+                onkeyup="if(event.key === 'Enter') listOperadores()">
         </div>
 
-        <div class="user-list" id="operadorList"></div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button class="load-btn" style="flex: 1;" onclick="listOperadores()">
+                🔄 Filtrar / Carregar
+            </button>
+            <button class="load-btn" style="flex: 1; background: #27ae60;" onclick="openCreateModal()">
+                ➕ Novo Operador
+            </button>
+        </div>
+
+        <div class="user-list" id="operadorList">
+            <!-- Lista inicia vazia conforme solicitado -->
+        </div>
     </div>
 
     <!-- Modal Criar Novo Operador -->
@@ -82,7 +98,9 @@
         let currentEditId = null;
 
         function showMessage(message, type) {
-            const container = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
+            const container = type === 'success' 
+                ? document.getElementById('successMessage') 
+                : document.getElementById('errorMessage');
             container.textContent = message;
             container.style.display = 'block';
             setTimeout(() => container.style.display = 'none', 3000);
@@ -95,34 +113,43 @@
                 return;
             }
 
+            const filtro = document.getElementById('filtro').value.trim();
+
             try {
-                const response = await fetch(`${API_URL}/operador`, {
+                const response = await fetch(`${API_URL}/operador?filtro=${encodeURIComponent(filtro)}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!response.ok) throw new Error('Erro na requisição');
 
                 const operadores = await response.json();
 
                 let html = '';
-                operadores.forEach(op => {
-                    html += `
-                        <div class="user-item">
-                            <div class="user-info">
-                                <p><strong>${op.nome}</strong></p>
-                                <p>Login: ${op.login}</p>
-                                <p>ID: ${op.id}</p>
-                                <p>Email: ${op.email}</p>
-                                ${op.codigo ? `<p>Código: ${op.codigo}</p>` : ''}
+                if (operadores.length === 0) {
+                    html = '<p style="text-align:center; padding:40px 20px; color:#666; font-style:italic;">Nenhum operador encontrado.</p>';
+                } else {
+                    operadores.forEach(op => {
+                        html += `
+                            <div class="user-item">
+                                <div class="user-info">
+                                    <p><strong>${op.nome}</strong></p>
+                                    <p><strong>Login:</strong> ${op.login}</p>
+                                    <p><strong>ID:</strong> ${op.id}</p>
+                                    <p><strong>Email:</strong> ${op.email}</p>
+                                    ${op.codigo ? `<p><strong>Código:</strong> ${op.codigo}</p>` : ''}
+                                </div>
+                                <div class="user-actions">
+                                    <button class="btn-edit" onclick="openEditModal(${op.id}, '${op.nome}', '${op.email}')">Editar</button>
+                                    <button class="btn-delete" onclick="deleteOperador(${op.id})">Deletar</button>
+                                </div>
                             </div>
-                            <div class="user-actions">
-                                <button class="btn-edit" onclick="openEditModal(${op.id}, '${op.nome}', '${op.email}')">Editar</button>
-                                <button class="btn-delete" onclick="deleteOperador(${op.id})">Deletar</button>
-                            </div>
-                        </div>
-                    `;
-                });
+                        `;
+                    });
+                }
 
-                document.getElementById('operadorList').innerHTML = html || '<p>Nenhum operador encontrado.</p>';
+                document.getElementById('operadorList').innerHTML = html;
             } catch (error) {
+                console.error(error);
                 showMessage('Erro ao carregar operadores', 'error');
             }
         }
@@ -151,10 +178,10 @@
         }
 
         async function createOperador() {
-            const login   = document.getElementById('createLogin').value.trim();
-            const senha   = document.getElementById('createSenha').value.trim();
-            const nome    = document.getElementById('createNome').value.trim();
-            const email   = document.getElementById('createEmail').value.trim();
+            const login = document.getElementById('createLogin').value.trim();
+            const senha = document.getElementById('createSenha').value.trim();
+            const nome  = document.getElementById('createNome').value.trim();
+            const email = document.getElementById('createEmail').value.trim();
 
             if (!login || !senha || !nome || !email) {
                 return showMessage('Todos os campos são obrigatórios', 'error');
@@ -164,7 +191,7 @@
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login, senha, nome, email})
+                    body: JSON.stringify({ login, senha, nome, email })
                 });
 
                 const data = await response.json();
@@ -172,7 +199,7 @@
                 if (response.ok) {
                     showMessage('Operador criado com sucesso!', 'success');
                     closeCreateModal();
-                    listOperadores();
+                    listOperadores(); // Atualiza a lista após criar
                 } else {
                     showMessage(data.error || 'Erro ao criar operador', 'error');
                 }
@@ -186,7 +213,9 @@
             const nome = document.getElementById('editNome').value.trim();
             const email = document.getElementById('editEmail').value.trim();
 
-            if (!nome || !email) return showMessage('Nome e Email são obrigatórios', 'error');
+            if (!nome || !email) {
+                return showMessage('Nome e Email são obrigatórios', 'error');
+            }
 
             try {
                 const response = await fetch(`${API_URL}/operador/${currentEditId}`, {
@@ -245,14 +274,13 @@
             if (event.target === createModal) closeCreateModal();
         };
 
-        // Carregar lista ao abrir a página
+        // Carrega a página com lista vazia
         window.onload = function() {
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = 'index.html';
-            } else {
-                listOperadores();
             }
+            // Lista permanece vazia até o usuário clicar em "Filtrar / Carregar"
         };
     </script>
 </body>
