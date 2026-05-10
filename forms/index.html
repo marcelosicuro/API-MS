@@ -4,91 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MS-LAB - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .login-container {
+            max-width: 420px;
+            margin: 80px auto;
+            background: #1f1f1f;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+        .form-control::placeholder {
+            color: #8b8b8b;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-dark">
     <div class="container">
-        <!-- Mensagens -->
-        <div id="successMessage" class="message success"></div>
-        <div id="errorMessage" class="message error"></div>
+        <div class="login-container">
+            <!-- Header -->
+            <div class="login-header">
+                <h1 class="mb-0">🚀 MS-LAB</h1>
+                <p class="mb-0 opacity-75">Gestão de Laboratório</p>
+            </div>
 
-        <!-- TELA 1: LOGIN -->
-        <div id="loginScreen" class="screen active">
-            <h1>🔐 MS-LAB</h1>
-            <h2>Entrar</h2>
-            <div class="form-group">
-                <label>Login:</label>
-                <input type="text" id="loginField" placeholder="Digite seu login">
-            </div>
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" id="loginPassword" placeholder="Digite sua senha">
-            </div>
-            <button onclick="login()">Entrar</button>
-            <div class="link-text" onclick="showScreen('registerScreen')">Não tem conta? Registrar</div>
-        </div>
+            <div class="p-4">
+                <!-- Mensagens -->
+                <div id="successMessage" class="alert alert-success d-none"></div>
+                <div id="errorMessage" class="alert alert-danger d-none"></div>
 
-        <!-- TELA 2: REGISTRO -->
-        <div id="registerScreen" class="screen">
-            <h1>📝 MS-LAB</h1>
-            <h2>Criar Conta</h2>
-            <div class="form-group">
-                <label>Login:</label>
-                <input type="text" id="registerLogin" placeholder="Digite seu login">
+                <!-- Abas -->
+                <ul class="nav nav-tabs mb-4" id="authTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#loginTab">Entrar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#registerTab">Criar Conta</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- ABA LOGIN -->
+                    <div class="tab-pane fade show active" id="loginTab">
+                        <div class="mb-3">
+                            <label class="form-label">Login</label>
+                            <input type="text" id="loginField" class="form-control" placeholder="Digite seu login">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Digite sua senha">
+                        </div>
+                        <button onclick="login()" id="btnLogin" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </div>
+
+                    <!-- ABA REGISTRO -->
+                    <div class="tab-pane fade" id="registerTab">
+                        <div class="mb-3">
+                            <label class="form-label">Login</label>
+                            <input type="text" id="registerLogin" class="form-control" placeholder="Escolha um login">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            <input type="password" id="registerPassword" class="form-control" placeholder="Mínimo 6 caracteres">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" id="registerName" class="form-control" placeholder="Seu nome completo">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="registerEmail" class="form-control" placeholder="seu@email.com">
+                        </div>
+                        <button onclick="register()" id="btnRegister" class="btn btn-success w-100 py-2">
+                            <i class="fas fa-user-plus"></i> Registrar
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" id="registerPassword" placeholder="Digite sua senha">
-            </div>
-            <div class="form-group">
-                <label>Nome Completo:</label>
-                <input type="text" id="registerName" placeholder="Digite seu nome">
-            </div>
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" id="registerEmail" placeholder="Digite seu email">
-            </div>
-            <button onclick="register()">Registrar</button>
-            <div class="link-text" onclick="showScreen('loginScreen')">Já tem conta? Entrar</div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_URL = 'http://localhost:3000';
 
-        function showScreen(screenName) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            document.getElementById(screenName).classList.add('active');
+        function showMessage(message, type) {
+            const success = document.getElementById('successMessage');
+            const error = document.getElementById('errorMessage');
+            
+            success.classList.add('d-none');
+            error.classList.add('d-none');
+
+            if (type === 'success') {
+                success.textContent = message;
+                success.classList.remove('d-none');
+            } else {
+                error.textContent = message;
+                error.classList.remove('d-none');
+            }
+
+            setTimeout(() => {
+                success.classList.add('d-none');
+                error.classList.add('d-none');
+            }, 5000);
         }
 
-        function showMessage(message, type) {
-            const container = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
-            container.textContent = message;
-            container.style.display = 'block';
-            setTimeout(() => container.style.display = 'none', 3000);
+        // Registrar Log (IP capturado no backend)
+        async function registrarLog(token, login, pagina) {
+            try {
+                await fetch(`${API_URL}/log`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        pagina: pagina, 
+                        operador: login
+                    })
+                });
+            } catch (e) {
+                console.warn('Não foi possível registrar o log:', e);
+            }
         }
 
         // ====================== REGISTRO ======================
         async function register() {
-            const login   = document.getElementById('registerLogin').value.trim();
-            const senha   = document.getElementById('registerPassword').value.trim();
-            const nome    = document.getElementById('registerName').value.trim();
-            const email   = document.getElementById('registerEmail').value.trim();
+            const btn = document.getElementById('btnRegister');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Registrando...`;
 
+            const login = document.getElementById('registerLogin').value.trim();
+            const senha = document.getElementById('registerPassword').value.trim();
+            const nome  = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
 
             if (!login || !senha || !nome || !email) {
                 showMessage('Preencha todos os campos', 'error');
-                return;
-            }
-
-            if (login.length < 3) {
-                showMessage('Login deve ter no mínimo 3 caracteres', 'error');
-                return;
-            }
-            if (senha.length < 6) {
-                showMessage('Senha deve ter no mínimo 6 caracteres', 'error');
+                resetRegisterButton();
                 return;
             }
 
@@ -96,35 +159,48 @@
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login, senha, nome, email})
+                    body: JSON.stringify({ login, senha, nome, email })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    showMessage('Operador registrado com sucesso! Faça login.', 'success');
-                    // Limpa os campos
+                    showMessage('Conta criada com sucesso! Faça login.', 'success');
+                    document.getElementById('authTabs').querySelector('a[href="#loginTab"]').click();
+                    
+                    // Limpar campos
                     document.getElementById('registerLogin').value = '';
                     document.getElementById('registerPassword').value = '';
                     document.getElementById('registerName').value = '';
                     document.getElementById('registerEmail').value = '';
-
-                    setTimeout(() => showScreen('loginScreen'), 2000);
                 } else {
                     showMessage(data.error || 'Erro ao registrar', 'error');
                 }
             } catch (error) {
-                showMessage('Erro de conexão: ' + error.message, 'error');
+                showMessage('Erro de conexão com o servidor', 'error');
+            } finally {
+                resetRegisterButton();
             }
+        }
+
+        function resetRegisterButton() {
+            const btn = document.getElementById('btnRegister');
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-user-plus"></i> Registrar`;
         }
 
         // ====================== LOGIN ======================
         async function login() {
-            const login    = document.getElementById('loginField').value.trim();
-            const senha    = document.getElementById('loginPassword').value.trim();
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Entrando...`;
 
-            if (!login || !senha) {
+            const loginField = document.getElementById('loginField').value.trim();
+            const senha = document.getElementById('loginPassword').value.trim();
+
+            if (!loginField || !senha) {
                 showMessage('Preencha login e senha', 'error');
+                resetLoginButton();
                 return;
             }
 
@@ -132,60 +208,51 @@
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login, senha })
+                    body: JSON.stringify({ login: loginField, senha })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Buscar nome do operador
-                    const resUsuario = await fetch(`${API_URL}/getNomeUsuario/${login}`, {
-                        method: 'GET',
-                        headers: { 
-                            'Authorization': `Bearer ${data.token}`,
-                            'Content-Type': 'application/json' 
-                        }
+                    // Buscar nome do usuário
+                    const resUsuario = await fetch(`${API_URL}/getNomeUsuario/${loginField}`, {
+                        headers: { 'Authorization': `Bearer ${data.token}` }
                     });
-
                     const usuario = await resUsuario.json();
 
-                    // Registrar Log
-                    await fetch(`${API_URL}/incluirLog`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            ip: window.location.hostname, 
-                            data: new Date().toISOString(), 
-                            pagina: 'Login', 
-                            operador: login
-                        })
-                    });
-
-                    // Salvar no localStorage
+                    // Salvar dados
                     localStorage.setItem('token', data.token);
-                    localStorage.setItem('login', login);
-                    localStorage.setItem('name', usuario.nome);
-                    
+                    localStorage.setItem('login', loginField);
+                    localStorage.setItem('name', usuario?.nome || loginField);
+
                     showMessage('Login realizado com sucesso!', 'success');
+
+                    // Registrar Log (IP capturado automaticamente no backend)
+                    await registrarLog(data.token, loginField, 'Login');
 
                     setTimeout(() => {
                         window.location.href = 'menu.html';
-                    }, 1500);
-
+                    }, 1000);
                 } else {
                     showMessage(data.error || 'Credenciais inválidas', 'error');
                 }
             } catch (error) {
-                showMessage('Erro de conexão: ' + error.message, 'error');
+                showMessage('Erro de conexão com o servidor', 'error');
+            } finally {
+                resetLoginButton();
             }
         }
 
-        // Verificar se já está logado
-        window.onload = function() {
-            if (localStorage.getItem('token')) {
-                window.location.href = 'menu.html';
-            }
-        };
+        function resetLoginButton() {
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Entrar`;
+        }
+
+        // Enter para fazer login
+        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>
