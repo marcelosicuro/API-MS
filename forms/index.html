@@ -189,7 +189,6 @@
             btn.innerHTML = `<i class="fas fa-user-plus"></i> Registrar`;
         }
 
-        // ====================== LOGIN ======================
         async function login() {
             const btn = document.getElementById('btnLogin');
             btn.disabled = true;
@@ -205,7 +204,8 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
+                // 1. Login
+                const response = await fetch(`${API_URL}/api/auth/login`, {   // ← corrigido
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login: loginField, senha })
@@ -213,36 +213,49 @@
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    // Buscar nome do usuário
-                    const resUsuario = await fetch(`${API_URL}/getNomeUsuario/${loginField}`, {
-                        headers: { 'Authorization': `Bearer ${data.token}` }
-                    });
-                    const usuario = await resUsuario.json();
-
-                    // Salvar dados
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('login', loginField);
-                    localStorage.setItem('name', usuario?.nome || loginField);
-
-                    showMessage('Login realizado com sucesso!', 'success');
-
-                    // Registrar Log (IP capturado automaticamente no backend)
-                    await registrarLog(data.token, loginField, 'Login');
-
-                    setTimeout(() => {
-                        window.location.href = 'menu.html';
-                    }, 1000);
-                } else {
+                if (!response.ok) {
                     showMessage(data.error || 'Credenciais inválidas', 'error');
+                    return;
                 }
+
+                // 2. Buscar nome do usuário (com rota correta)
+                const resUsuario = await fetch(`${API_URL}/api/operadores/getNomeUsuario/${loginField}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${data.token}` 
+                    }
+                });
+
+                let usuario = null;
+                if (resUsuario.ok) {
+                    usuario = await resUsuario.json();
+                } else {
+                    console.warn('Não foi possível buscar nome do usuário');
+                }
+
+                // Salvar no localStorage
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('login', loginField);
+                localStorage.setItem('name', usuario?.nome || loginField);
+
+                showMessage('Login realizado com sucesso!', 'success');
+
+                // Registrar Log
+                await registrarLog(data.token, loginField, 'Login');
+
+                // Redirecionar
+                setTimeout(() => {
+                    window.location.href = 'menu.html';
+                }, 800);
+
             } catch (error) {
+                console.error('Erro no login:', error);
                 showMessage('Erro de conexão com o servidor', 'error');
             } finally {
                 resetLoginButton();
             }
         }
 
+        
         function resetLoginButton() {
             const btn = document.getElementById('btnLogin');
             btn.disabled = false;

@@ -1,7 +1,7 @@
 // server.js
+const helmet = require('helmet');
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
@@ -22,10 +22,11 @@ app.get('/', (req, res) => {
   res.json({ message: 'API MS-LAB funcionando com PostgreSQL!' });
 });
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/operadores', require('./routes/operadores'));
-app.use('/api/objetos', require('./routes/objetos'));
-app.use('/api/logs', require('./routes/logs'));
+// Rotas sem prefixo /api (para compatibilidade com frontend atual)
+app.use(require('./routes/auth'));           // ← /login, /register
+app.use('/operadores', require('./routes/operadores'));
+app.use('/objetos', require('./routes/objetos'));
+app.use('/logs', require('./routes/logs'));
 
 // ====================== 404 ======================
 app.use((req, res) => {

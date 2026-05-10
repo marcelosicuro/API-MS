@@ -15,9 +15,9 @@
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.13.1",
-    "helmet": "^8.0.0"
+    "pg": "^8.13.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
@@ -30,5 +30,4 @@
   ],
   "author": "",
   "license": "ISC"
-  
 }

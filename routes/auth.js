@@ -1,11 +1,13 @@
+// routes/auth.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');        // ← Faltava isso!
 const db = require('../db');
 
 const router = express.Router();
 
-// Register
+// ====================== REGISTER ======================
 router.post('/register', async (req, res) => {
   const { login, senha, nome, email } = req.body;
 
@@ -36,7 +38,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+// ====================== LOGIN ======================
 router.post('/login', async (req, res) => {
   const { login, senha } = req.body;
 
@@ -53,14 +55,14 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: operador.id, login: operador.login }, 
-      process.env.JWT_SECRET, 
+      { id: operador.id, login: operador.login },
+      process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
     res.json({ message: 'Login realizado com sucesso', token });
   } catch (error) {
-    console.error(error);
+    console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro interno no login' });
   }
 });
