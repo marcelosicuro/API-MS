@@ -180,7 +180,7 @@
             const filtro = document.getElementById('filtro').value.trim();
 
             try {
-                const response = await fetch(`${API_URL}/objeto`, {
+                const response = await fetch(`${API_URL}/objetos`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`, 
@@ -227,6 +227,7 @@
                     tbody.innerHTML += row;
                 });
             } catch (error) {
+                console.error(error);
                 showMessage('Erro ao carregar objetos', 'error');
             }
         }
@@ -248,7 +249,7 @@
             const token = localStorage.getItem('token');
 
             try {
-                const response = await fetch(`${API_URL}/incluirObjeto`, {
+                const response = await fetch(`${API_URL}/objetos/incluirObjeto`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -287,7 +288,7 @@
             if (!nomeobjeto) return showMessage('Nome do objeto é obrigatório', 'error');
 
             try {
-                const response = await fetch(`${API_URL}/objeto/${currentEditObjetoId}`, {
+                const response = await fetch(`${API_URL}/objetos/${currentEditObjetoId}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -314,7 +315,7 @@
 
             const token = localStorage.getItem('token');
             try {
-                const response = await fetch(`${API_URL}/objeto/${id}`, {
+                const response = await fetch(`${API_URL}/objetos/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

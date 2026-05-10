@@ -204,8 +204,8 @@
             }
 
             try {
-                // 1. Login
-                const response = await fetch(`${API_URL}/api/auth/login`, {   // ← corrigido
+                // Login
+                const response = await fetch(`${API_URL}/login`, {   // ← Sem /api/auth
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login: loginField, senha })
@@ -218,8 +218,8 @@
                     return;
                 }
 
-                // 2. Buscar nome do usuário (com rota correta)
-                const resUsuario = await fetch(`${API_URL}/api/operadores/getNomeUsuario/${loginField}`, {
+                // Buscar nome do usuário
+                const resUsuario = await fetch(`${API_URL}/operadores/getNomeUsuario/${loginField}`, {
                     headers: { 
                         'Authorization': `Bearer ${data.token}` 
                     }
@@ -228,11 +228,9 @@
                 let usuario = null;
                 if (resUsuario.ok) {
                     usuario = await resUsuario.json();
-                } else {
-                    console.warn('Não foi possível buscar nome do usuário');
                 }
 
-                // Salvar no localStorage
+                // Salvar dados
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('login', loginField);
                 localStorage.setItem('name', usuario?.nome || loginField);
@@ -242,7 +240,6 @@
                 // Registrar Log
                 await registrarLog(data.token, loginField, 'Login');
 
-                // Redirecionar
                 setTimeout(() => {
                     window.location.href = 'menu.html';
                 }, 800);

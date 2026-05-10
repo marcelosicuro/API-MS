@@ -59,7 +59,9 @@
                         </div>
                         <div class="card-body">
                             <div class="input-group mb-3">
-                                <input type="text" id="filtro" class="form-control" placeholder="Filtrar por nome, login ou email..." onkeyup="if(event.key === 'Enter') listOperadores()">
+                                <input type="text" id="filtro" class="form-control" 
+                                       placeholder="Filtrar por nome, login ou email..." 
+                                       onkeyup="if(event.key === 'Enter') listOperadores()">
                                 <button class="btn btn-primary" onclick="listOperadores()">
                                     <i class="fas fa-search"></i> Buscar
                                 </button>
@@ -87,7 +89,6 @@
         </div>
     </div>
 
-    <!-- Modais (Bootstrap) -->
     <!-- Modal Criar -->
     <div class="modal fade" id="createModal" tabindex="-1">
         <div class="modal-dialog">
@@ -179,7 +180,7 @@
             const filtro = document.getElementById('filtro').value.trim();
 
             try {
-                const response = await fetch(`${API_URL}/operador?filtro=${encodeURIComponent(filtro)}`, {
+                const response = await fetch(`${API_URL}/operadores?filtro=${encodeURIComponent(filtro)}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -207,7 +208,8 @@
                             <td>${op.email}</td>
                             <td>${op.codigo || '-'}</td>
                             <td>
-                                <button class="btn btn-sm btn-warning me-1" onclick="openEditModal(${op.id}, '${op.nome}', '${op.email}')">
+                                <button class="btn btn-sm btn-warning me-1" 
+                                        onclick="openEditModal(${op.id}, '${op.nome}', '${op.email}')">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger" onclick="deleteOperador(${op.id})">
@@ -219,6 +221,7 @@
                     tbody.innerHTML += row;
                 });
             } catch (error) {
+                console.error(error);
                 showMessage('Erro ao carregar operadores', 'error');
             }
         }
@@ -232,13 +235,14 @@
         }
 
         async function createOperador() {
-            // ... (mesma lógica anterior, mantida)
             const login = document.getElementById('createLogin').value.trim();
             const senha = document.getElementById('createSenha').value.trim();
             const nome  = document.getElementById('createNome').value.trim();
             const email = document.getElementById('createEmail').value.trim();
 
-            if (!login || !senha || !nome || !email) return showMessage('Todos os campos são obrigatórios', 'error');
+            if (!login || !senha || !nome || !email) {
+                return showMessage('Todos os campos são obrigatórios', 'error');
+            }
 
             try {
                 const response = await fetch(`${API_URL}/register`, {
@@ -253,7 +257,7 @@
                     listOperadores();
                 } else {
                     const data = await response.json();
-                    showMessage(data.error || 'Erro ao criar', 'error');
+                    showMessage(data.error || 'Erro ao criar operador', 'error');
                 }
             } catch (error) {
                 showMessage('Erro de conexão', 'error');
@@ -268,7 +272,6 @@
         }
 
         async function saveOperador() {
-            // ... (lógica anterior mantida)
             const token = localStorage.getItem('token');
             const nome = document.getElementById('editNome').value.trim();
             const email = document.getElementById('editEmail').value.trim();
@@ -276,21 +279,22 @@
             if (!nome || !email) return showMessage('Nome e Email são obrigatórios', 'error');
 
             try {
-                const response = await fetch(`${API_URL}/operador/${currentEditId}`, {
+                const response = await fetch(`${API_URL}/operadores/${currentEditId}`, {
                     method: 'PUT',
-                    headers: {
+                    headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}` 
                     },
                     body: JSON.stringify({ nome, email })
                 });
 
                 if (response.ok) {
-                    showMessage('Operador atualizado!', 'success');
+                    showMessage('Operador atualizado com sucesso!', 'success');
                     bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
                     listOperadores();
                 } else {
-                    showMessage('Erro ao atualizar', 'error');
+                    const data = await response.json();
+                    showMessage(data.error || 'Erro ao atualizar', 'error');
                 }
             } catch (error) {
                 showMessage('Erro de conexão', 'error');
@@ -302,7 +306,7 @@
 
             const token = localStorage.getItem('token');
             try {
-                const response = await fetch(`${API_URL}/operador/${id}`, {
+                const response = await fetch(`${API_URL}/operadores/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -323,14 +327,21 @@
             window.location.href = 'index.html';
         }
 
+        
+
         window.onload = function() {
             const token = localStorage.getItem('token');
-            if (!token) window.location.href = 'index.html';
+            if (!token) return window.location.href = 'index.html';
+            
+            // LIMPA O CAMPO DE FILTRO AO CARREGAR A PÁGINA
+            document.getElementById('filtro').value = '';
+
             listOperadores();
 
             const name = localStorage.getItem('name');
             if (name) document.getElementById('userGreeting').textContent = `👋 ${name}`;
         };
+        
     </script>
 </body>
 </html>
