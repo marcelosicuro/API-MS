@@ -183,23 +183,24 @@ code {
 .table code {
     background: #333;
     color: #a5b4fc;
-    padding: 2px 4px;
+    padding: 2px 2px;
     border-radius: 4px;
     font-size: 0.9em;
 }
 
 
-/* Espaçamento interno */
+/* Espaçamento grid */
+
+.top-navbar {
+    margin-bottom: 7px;       /* Espaço entre navbar e cards/tabelas */
+}
 
 .d-flex {
-    gap: 2x;                 /* Espaço entre sidebar e conteúdo */
+    gap: 0px;                 /* Espaço entre sidebar e conteúdo */
 }
 
 .content-area {
-    padding: 1px 1px;        /* Espaçamento interno */
+    padding: 2px 2px;        /* Espaçamento interno */
     background: #0f0f0f;
 }
 
-.top-navbar {
-    margin-bottom: 5px;       /* Espaço entre navbar e cards/tabelas */
-}
