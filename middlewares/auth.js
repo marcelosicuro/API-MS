@@ -1,9 +1,10 @@
+// middlewares/auth.js
 const jwt = require('jsonwebtoken');
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
 if (!SECRET_KEY) {
-  console.error('❌ ERRO: JWT_SECRET não definido no arquivo .env');
+  console.error('❌ JWT_SECRET não definido no .env');
   process.exit(1);
 }
 
@@ -17,7 +18,8 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, SECRET_KEY, (err, operador) => {
     if (err) return res.status(403).json({ error: 'Token inválido ou expirado' });
-    req.operador = operador;
+    
+    req.operador = operador;   // contém: id, login, permissao_nome
     next();
   });
 };

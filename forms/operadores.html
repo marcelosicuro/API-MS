@@ -15,18 +15,10 @@
             <div class="px-3 py-4">
                 <h4 class="text-center mb-4">🚀 MS-LAB</h4>
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a href="menu.html" class="nav-link"><i class="fas fa-home me-2"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="operadores.html" class="nav-link active"><i class="fas fa-users me-2"></i> Operadores</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="objetos.html" class="nav-link"><i class="fas fa-box me-2"></i> Objetos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="logs.html" class="nav-link"><i class="fas fa-history me-2"></i> Logs</a>
-                    </li>
+                    <li class="nav-item"><a href="menu.html" class="nav-link"><i class="fas fa-home me-2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="operadores.html" class="nav-link active"><i class="fas fa-users me-2"></i> Operadores</a></li>
+                    <li class="nav-item"><a href="objetos.html" class="nav-link"><i class="fas fa-box me-2"></i> Objetos</a></li>
+                    <li class="nav-item"><a href="logs.html" class="nav-link"><i class="fas fa-history me-2"></i> Logs</a></li>
                 </ul>
             </div>
         </div>
@@ -61,6 +53,7 @@
                             <div class="input-group mb-3">
                                 <input type="text" id="filtro" class="form-control" 
                                        placeholder="Filtrar por nome, login ou email..." 
+                                       autocomplete="off"
                                        onkeyup="if(event.key === 'Enter') listOperadores()">
                                 <button class="btn btn-primary" onclick="listOperadores()">
                                     <i class="fas fa-search"></i> Buscar
@@ -75,7 +68,7 @@
                                             <th>Nome</th>
                                             <th>Login</th>
                                             <th>Email</th>
-                                            <th>Código</th>
+                                            <th>Permissão</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
@@ -114,6 +107,10 @@
                         <label class="form-label">Email</label>
                         <input type="email" id="createEmail" class="form-control">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Permissão</label>
+                        <select id="createPermissao" class="form-select"></select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -140,6 +137,10 @@
                         <label class="form-label">Email</label>
                         <input type="email" id="editEmail" class="form-control">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Permissão</label>
+                        <select id="editPermissao" class="form-select"></select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -153,6 +154,7 @@
     <script>
         const API_URL = 'http://localhost:3000';
         let currentEditId = null;
+        let permissoesList = [];
 
         function showMessage(message, type) {
             const success = document.getElementById('successMessage');
@@ -171,6 +173,36 @@
                 success.classList.add('d-none');
                 error.classList.add('d-none');
             }, 4000);
+        }
+
+        // Carregar permissões
+        async function loadPermissoes() {
+            try {
+                const response = await fetch(`${API_URL}/operadores/permissoes`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (response.ok) {
+                    permissoesList = await response.json();
+                } else {
+                    console.error('Erro ao carregar permissões:', response.status);
+                }
+            } catch (e) {
+                console.warn("Não foi possível carregar permissões", e);
+            }
+        }
+
+        function popularSelectPermissao(selectId, selectedId = null) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Selecione uma permissão</option>';
+            
+            permissoesList.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.nome;
+                if (p.id == selectedId) option.selected = true;
+                select.appendChild(option);
+            });
         }
 
         async function listOperadores() {
@@ -205,11 +237,11 @@
                             <td>${op.id}</td>
                             <td><strong>${op.nome}</strong></td>
                             <td>${op.login}</td>
-                            <td>${op.email}</td>
-                            <td>${op.codigo || '-'}</td>
+                            <td>${op.email || '-'}</td>
+                            <td><span class="badge bg-secondary">${op.permissao_nome || 'Sem permissão'}</span></td>
                             <td>
                                 <button class="btn btn-sm btn-warning me-1" 
-                                        onclick="openEditModal(${op.id}, '${op.nome}', '${op.email}')">
+                                        onclick="openEditModal(${op.id}, '${op.nome}', '${op.email}', ${op.permissao_id || 'null'})">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="btn btn-sm btn-danger" onclick="deleteOperador(${op.id})">
@@ -221,7 +253,6 @@
                     tbody.innerHTML += row;
                 });
             } catch (error) {
-                console.error(error);
                 showMessage('Erro ao carregar operadores', 'error');
             }
         }
@@ -231,6 +262,7 @@
             document.getElementById('createSenha').value = '';
             document.getElementById('createNome').value = '';
             document.getElementById('createEmail').value = '';
+            popularSelectPermissao('createPermissao');
             new bootstrap.Modal(document.getElementById('createModal')).show();
         }
 
@@ -239,6 +271,7 @@
             const senha = document.getElementById('createSenha').value.trim();
             const nome  = document.getElementById('createNome').value.trim();
             const email = document.getElementById('createEmail').value.trim();
+            const permissao_id = document.getElementById('createPermissao').value;
 
             if (!login || !senha || !nome || !email) {
                 return showMessage('Todos os campos são obrigatórios', 'error');
@@ -248,7 +281,7 @@
                 const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login, senha, nome, email })
+                    body: JSON.stringify({ login, senha, nome, email, permissao_id })
                 });
 
                 if (response.ok) {
@@ -264,10 +297,11 @@
             }
         }
 
-        function openEditModal(id, nome, email) {
+        function openEditModal(id, nome, email, permissao_id) {
             currentEditId = id;
             document.getElementById('editNome').value = nome;
-            document.getElementById('editEmail').value = email;
+            document.getElementById('editEmail').value = email || '';
+            popularSelectPermissao('editPermissao', permissao_id);
             new bootstrap.Modal(document.getElementById('editModal')).show();
         }
 
@@ -275,6 +309,7 @@
             const token = localStorage.getItem('token');
             const nome = document.getElementById('editNome').value.trim();
             const email = document.getElementById('editEmail').value.trim();
+            const permissao_id = document.getElementById('editPermissao').value;
 
             if (!nome || !email) return showMessage('Nome e Email são obrigatórios', 'error');
 
@@ -285,7 +320,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}` 
                     },
-                    body: JSON.stringify({ nome, email })
+                    body: JSON.stringify({ nome, email, permissao_id })
                 });
 
                 if (response.ok) {
@@ -293,8 +328,7 @@
                     bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
                     listOperadores();
                 } else {
-                    const data = await response.json();
-                    showMessage(data.error || 'Erro ao atualizar', 'error');
+                    showMessage('Erro ao atualizar operador', 'error');
                 }
             } catch (error) {
                 showMessage('Erro de conexão', 'error');
@@ -327,21 +361,25 @@
             window.location.href = 'index.html';
         }
 
-        
-
-        window.onload = function() {
+        window.onload = async function() {
             const token = localStorage.getItem('token');
             if (!token) return window.location.href = 'index.html';
-            
-            // LIMPA O CAMPO DE FILTRO AO CARREGAR A PÁGINA
-            document.getElementById('filtro').value = '';
 
+            const permissaoUsuario = localStorage.getItem('permissao_nome');
+
+            // Esconde botão de Novo Operador se não for Admin
+            const btnNovo = document.querySelector('.btn-success');
+            if (btnNovo && permissaoUsuario?.toLowerCase() !== 'admin') {
+                btnNovo.style.display = 'none';
+            }
+
+            document.getElementById('filtro').value = '';
+            await loadPermissoes();
             listOperadores();
 
             const name = localStorage.getItem('name');
             if (name) document.getElementById('userGreeting').textContent = `👋 ${name}`;
         };
-        
     </script>
 </body>
 </html>

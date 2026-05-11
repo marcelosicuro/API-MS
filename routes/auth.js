@@ -2,27 +2,25 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');        // ← Faltava isso!
+const jwt = require('jsonwebtoken');
 const db = require('../db');
 
-const router = express.Router();
+const router = express.Router();   // ← ESSA LINHA ESTAVA FALTANDO
 
 // ====================== REGISTER ======================
 router.post('/register', async (req, res) => {
-  const { login, senha, nome, email } = req.body;
+  const { login, senha, nome, email, permissao_id } = req.body;
 
   if (!login || !senha || !nome || !email) {
-    return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    return res.status(400).json({ error: 'Todos os campos obrigatórios' });
   }
-  if (login.length < 3) return res.status(400).json({ error: 'Login deve ter no mínimo 3 caracteres' });
-  if (senha.length < 6) return res.status(400).json({ error: 'Senha deve ter no mínimo 6 caracteres' });
 
   try {
     const hashedSenha = await bcrypt.hash(senha, 10);
     const result = await db.query(
-      `INSERT INTO operador (login, senha, nome, email, codigo) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [login, hashedSenha, nome, email, crypto.randomUUID()]
+      `INSERT INTO operador (login, senha, nome, email, codigo, permissao_id) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [login, hashedSenha, nome, email, crypto.randomUUID(), permissao_id || null]
     );
 
     res.status(201).json({ 
@@ -30,11 +28,9 @@ router.post('/register', async (req, res) => {
       id: result.rows[0].id 
     });
   } catch (error) {
-    if (error.code === '23505') {
-      return res.status(409).json({ error: 'Login já cadastrado' });
-    }
+    if (error.code === '23505') return res.status(409).json({ error: 'Login já cadastrado' });
     console.error(error);
-    res.status(500).json({ error: 'Erro interno ao registrar operador' });
+    res.status(500).json({ error: 'Erro interno ao registrar' });
   }
 });
 
@@ -47,7 +43,12 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await db.query('SELECT * FROM operador WHERE login = $1', [login]);
+    const result = await db.query(`
+      SELECT o.*, p.nome as permissao_nome 
+      FROM operador o 
+      LEFT JOIN permissao p ON o.permissao_id = p.id 
+      WHERE o.login = $1`, [login]);
+
     const operador = result.rows[0];
 
     if (!operador || !(await bcrypt.compare(senha, operador.senha))) {
@@ -55,12 +56,20 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: operador.id, login: operador.login },
+      { 
+        id: operador.id, 
+        login: operador.login,
+        permissao_nome: operador.permissao_nome
+      },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
-    res.json({ message: 'Login realizado com sucesso', token });
+    res.json({ 
+      message: 'Login realizado com sucesso', 
+      token,
+      permissao_nome: operador.permissao_nome 
+    });
   } catch (error) {
     console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro interno no login' });

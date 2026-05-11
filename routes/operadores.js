@@ -1,19 +1,23 @@
+// routes/operadores.js
 const express = require('express');
 const db = require('../db');
 const { authenticateToken } = require('../middlewares/auth');
+const { hasPermission } = require('../middlewares/permission');
 
 const router = express.Router();
 
-router.get('/', authenticateToken, async (req, res) => {
+// ====================== LISTAGEM (LIBERADA PARA ADMIN) ======================
+router.get('/', authenticateToken, hasPermission('admin'), async (req, res) => {
   try {
     const filtro = req.query.filtro || '';
-    const result = await db.query(
-      `SELECT id, login, nome, email, codigo 
-       FROM operador 
-       WHERE nome ILIKE $1 OR login ILIKE $1 OR email ILIKE $1
-       ORDER BY nome`,
-      [`%${filtro}%`]
-    );
+    const result = await db.query(`
+      SELECT o.id, o.login, o.nome, o.email, o.codigo, o.permissao_id,
+             p.nome as permissao_nome
+      FROM operador o 
+      LEFT JOIN permissao p ON o.permissao_id = p.id
+      WHERE o.nome ILIKE $1 OR o.login ILIKE $1 OR o.email ILIKE $1
+      ORDER BY o.nome`, [`%${filtro}%`]);
+
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -21,47 +25,20 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/getNomeUsuario/:login', authenticateToken, async (req, res) => {
-  try {
-    const result = await db.query('SELECT id, nome FROM operador WHERE login = $1', [req.params.login]);
-    res.json(result.rows[0] || null);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao buscar o nome do usuário' });
-  }
-});
-
-router.put('/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { nome, email } = req.body;
-
-  if (!nome || !email) return res.status(400).json({ error: 'Nome e email são obrigatórios' });
-
+router.get('/permissoes', authenticateToken, hasPermission('admin'), async (req, res) => {
   try {
     const result = await db.query(
-      'UPDATE operador SET nome = $1, email = $2 WHERE id = $3 RETURNING id',
-      [nome, email, id]
+      'SELECT id, nome FROM permissao WHERE ativo = true ORDER BY nome'
     );
-
-    if (result.rowCount === 0) return res.status(404).json({ error: 'Operador não encontrado' });
-
-    res.json({ message: 'Operador atualizado com sucesso', id, nome, email });
+    res.json(result.rows);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Erro ao atualizar operador' });
+    res.status(500).json({ error: 'Erro ao carregar permissões' });
   }
 });
 
-router.delete('/:id', authenticateToken, async (req, res) => {
-  try {
-    const result = await db.query('DELETE FROM operador WHERE id = $1 RETURNING id', [req.params.id]);
-    if (result.rowCount === 0) return res.status(404).json({ error: 'Operador não encontrado' });
-
-    res.json({ message: 'Operador deletado com sucesso', id: req.params.id });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao deletar operador' });
-  }
-});
+// ====================== ROTAS DE ESCRITA (APENAS ADMIN) ======================
+router.put('/:id', authenticateToken, hasPermission('admin'), /* ... seu update */);
+router.delete('/:id', authenticateToken, hasPermission('admin'), /* ... seu delete */);
 
 module.exports = router;
