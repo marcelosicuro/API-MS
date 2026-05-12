@@ -58,9 +58,22 @@
                             </button>
                         </div>
                         <div class="card-body">
+                            <!-- FILTRO COM ANTI-AUTOFILL -->
                             <div class="input-group mb-3">
-                                <input type="text" id="filtro" class="form-control" 
+                                <!-- Armadilha para roubar o autofill -->
+                                <input type="text" 
+                                       style="position:absolute; opacity:0; height:0; width:0; overflow:hidden;" 
+                                       tabindex="-1" 
+                                       autocomplete="off"
+                                       name="fake_username_trap">
+
+                                <input type="text" 
+                                       id="filtro" 
+                                       name="search_filter_objetos_2025"
+                                       class="form-control" 
                                        placeholder="Filtrar por nome do objeto..." 
+                                       autocomplete="off"
+                                       onfocus="this.setAttribute('autocomplete', 'off')"
                                        onkeyup="if(event.key === 'Enter') listObjetos()">
                                 <button class="btn btn-primary" onclick="listObjetos()">
                                     <i class="fas fa-search"></i> Buscar
@@ -336,11 +349,34 @@
             window.location.href = 'index.html';
         }
 
+        // ====================== ANTI-AUTOFILL ======================
+        function antiAutofill() {
+            const filtro = document.getElementById('filtro');
+            if (!filtro) return;
+
+            filtro.value = '';
+            filtro.setAttribute('autocomplete', 'off');
+            filtro.setAttribute('name', 'search_filter_' + Math.random().toString(36).slice(2));
+            
+            setTimeout(() => filtro.value = '', 50);
+            setTimeout(() => filtro.value = '', 300);
+            setTimeout(() => filtro.value = '', 800);
+            setTimeout(() => filtro.value = '', 2000);
+        }
+
         window.onload = function() {
             const token = localStorage.getItem('token');
             if (!token) return window.location.href = 'index.html';
             
+            // Limpeza inicial
+            document.getElementById('filtro').value = '';
             listObjetos();
+
+            // Proteção anti-autofill
+            antiAutofill();
+            setTimeout(antiAutofill, 1500);
+            setTimeout(antiAutofill, 3500);
+            setTimeout(antiAutofill, 5500);
 
             const name = localStorage.getItem('name');
             if (name) document.getElementById('userGreeting').textContent = `👋 ${name}`;
