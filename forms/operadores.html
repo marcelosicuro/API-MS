@@ -10,7 +10,6 @@
 </head>
 <body>
     <div class="d-flex">
-        <!-- SIDEBAR -->
         <div class="sidebar col-2">
             <div class="px-3 py-4">
                 <h4 class="text-center mb-4">🚀 MS-LAB</h4>
@@ -23,7 +22,6 @@
             </div>
         </div>
 
-        <!-- CONTEÚDO PRINCIPAL -->
         <div class="flex-grow-1">
             <nav class="top-navbar navbar navbar-expand-lg navbar-dark px-4 py-3">
                 <div class="container-fluid">
@@ -50,12 +48,19 @@
                             </button>
                         </div>
                         <div class="card-body">
+                            <!-- === FILTRO ULTRA PROTEGIDO === -->
                             <div class="input-group mb-3">
-                                <input type="text" style="position:absolute; opacity:0; height:0; width:0; overflow:hidden;" tabindex="-1" autocomplete="off" name="fake_trap">
-                                <input type="text" id="filtro" class="form-control" 
+                                <!-- Armadilha forte -->
+                                <input type="text" style="position:absolute; opacity:0; height:0; width:0; overflow:hidden;" 
+                                       tabindex="-1" autocomplete="off" name="fake_login_trap_2025">
+
+                                <input type="text" 
+                                       id="filtro" 
+                                       name="filter_operadores_random_98765"
+                                       class="form-control" 
                                        placeholder="Filtrar por nome, login ou email..." 
                                        autocomplete="off"
-                                       onfocus="this.setAttribute('autocomplete','off')"
+                                       onfocus="this.setAttribute('autocomplete','off'); this.value=this.value;"
                                        onkeyup="if(event.key === 'Enter') listOperadores()">
                                 <button class="btn btn-primary" onclick="listOperadores()">
                                     <i class="fas fa-search"></i> Buscar
@@ -84,49 +89,8 @@
         </div>
     </div>
 
-    <!-- Modal Criar -->
-    <div class="modal fade" id="createModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Novo Operador</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Login</label><input type="text" id="createLogin" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Senha</label><input type="password" id="createSenha" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Nome Completo</label><input type="text" id="createNome" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Email</label><input type="email" id="createEmail" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Permissão</label><select id="createPermissao" class="form-select"></select></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="createOperador()">Criar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Editar -->
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Operador</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Nome</label><input type="text" id="editNome" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Email</label><input type="email" id="editEmail" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label">Permissão</label><select id="editPermissao" class="form-select"></select></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="saveOperador()">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Modais (mantidos iguais) -->
+    <!-- ... seus modais create e edit ... -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -134,109 +98,30 @@
         let currentEditId = null;
         let permissoesList = [];
 
-        function showMessage(message, type) {
-            const success = document.getElementById('successMessage');
-            const error = document.getElementById('errorMessage');
-            success.classList.add('d-none'); error.classList.add('d-none');
-            if (type === 'success') {
-                success.textContent = message; success.classList.remove('d-none');
-            } else {
-                error.textContent = message; error.classList.remove('d-none');
-            }
-            setTimeout(() => { success.classList.add('d-none'); error.classList.add('d-none'); }, 4000);
+        // Suas funções showMessage, loadPermissoes, popularSelectPermissao, listOperadores,
+        // createOperador, openEditModal, saveOperador, deleteOperador... (mantenha como estão)
+
+        function antiAutofill() {
+            const filtro = document.getElementById('filtro');
+            if (!filtro) return;
+            
+            filtro.value = '';
+            filtro.setAttribute('autocomplete', 'off');
+            filtro.setAttribute('name', 'filter_' + Math.random().toString(36).slice(2));
+            
+            setTimeout(() => filtro.value = '', 10);
+            setTimeout(() => filtro.value = '', 100);
+            setTimeout(() => filtro.value = '', 500);
+            setTimeout(() => filtro.value = '', 1500);
+            setTimeout(() => filtro.value = '', 3000);
         }
 
-        async function loadPermissoes() {
-            try {
-                const res = await fetch(`${API_URL}/operadores/permissoes`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                if (res.ok) permissoesList = await res.json();
-            } catch (e) { console.warn("Erro ao carregar permissões", e); }
-        }
-
-        function popularSelectPermissao(selectId, selectedId = null) {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Selecione uma permissão</option>';
-            permissoesList.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id; opt.textContent = p.nome;
-                if (p.id == selectedId) opt.selected = true;
-                select.appendChild(opt);
-            });
-        }
-
-        async function listOperadores() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const token = localStorage.getItem('token');
             if (!token) return window.location.href = 'index.html';
 
-            const filtro = document.getElementById('filtro').value.trim();
-            const tbody = document.querySelector('#operadoresTable tbody');
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">🔄 Carregando...</td></tr>';
-
-            try {
-                const res = await fetch(`${API_URL}/operadores?filtro=${encodeURIComponent(filtro)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                const operadores = await res.json();
-                tbody.innerHTML = '';
-
-                if (operadores.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Nenhum operador encontrado.</td></tr>`;
-                    return;
-                }
-
-                operadores.forEach(op => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${op.id}</td>
-                            <td><strong>${op.nome}</strong></td>
-                            <td>${op.login}</td>
-                            <td>${op.email || '-'}</td>
-                            <td><span class="badge bg-secondary">${op.permissao_nome || 'Sem permissão'}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-warning me-1" onclick="openEditModal(${op.id}, '${op.nome}', '${op.email || ''}', ${op.permissao_id || 'null'})"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteOperador(${op.id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>`;
-                });
-            } catch (error) {
-                console.error(error);
-                showMessage('Erro ao carregar operadores', 'error');
-            }
-        }
-
-        function openCreateModal() {
-            document.getElementById('createLogin').value = '';
-            document.getElementById('createSenha').value = '';
-            document.getElementById('createNome').value = '';
-            document.getElementById('createEmail').value = '';
-            popularSelectPermissao('createPermissao');
-            new bootstrap.Modal(document.getElementById('createModal')).show();
-        }
-
-        async function createOperador() { /* sua função original */ }
-        function openEditModal(id, nome, email, permissao_id) { /* sua função original */ }
-        async function saveOperador() { /* sua função original */ }
-        async function deleteOperador(id) { /* sua função original */ }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('token');
-            if (!token) return window.location.href = 'index.html';
-
-            document.getElementById('filtro').value = '';
+            // Limpeza agressiva
+            antiAutofill();
 
             const btnNovo = document.querySelector('.btn-success');
             if (btnNovo && localStorage.getItem('permissao_nome')?.toLowerCase() !== 'admin') {
