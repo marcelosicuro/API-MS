@@ -122,7 +122,7 @@
         // Registrar Log (IP capturado no backend)
         async function registrarLog(token, login, pagina) {
             try {
-                await fetch(`${API_URL}/log`, {
+                await fetch(`${API_URL}/logs`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',

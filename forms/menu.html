@@ -81,19 +81,38 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+        async function registrarLog(token, login, pagina) {
+            try {
+                await fetch(`${API_URL}/logs`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ pagina, operador: login })
+                });
+            } catch (e) {
+                console.warn('Log não registrado', e);
+            }
         }
 
-        window.onload = function() {
+        window.onload = async function() {
+            const token = localStorage.getItem('token');
+            const login = localStorage.getItem('login');
             const name = localStorage.getItem('name');
+
             if (name) {
                 document.getElementById('userGreeting').textContent = `👋 ${name}`;
             }
-            // Aqui você pode adicionar chamadas para atualizar os cards
+
+            if (token && login) {
+                await registrarLog(token, login, 'Dashboard (Menu)');
+            }
+
+            // Aqui você pode carregar os cards (total objetos, operadores, etc.)
         };
-    </script>
+</script>
 </body>
 </html>
