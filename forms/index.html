@@ -133,7 +133,7 @@
             }
         }
 
-        // ====================== LOGIN ======================
+        // ====================== LOGIN ATUALIZADO ======================
         async function login() {
             const btn = document.getElementById('btnLogin');
             btn.disabled = true;
@@ -162,21 +162,12 @@
                     return;
                 }
 
-                // Buscar nome + permissão
-                const resUsuario = await fetch(`${API_URL}/operadores/getNomeUsuario/${loginField}`, {
-                    headers: { 'Authorization': `Bearer ${data.token}` }
-                });
-
-                let usuario = null;
-                if (resUsuario.ok) {
-                    usuario = await resUsuario.json();
-                }
-
-                // Salvar no localStorage
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('login', loginField);
-                localStorage.setItem('name', usuario?.nome || loginField);
-                localStorage.setItem('permissao_nome', usuario?.permissao_nome || 'Operador');
+                localStorage.setItem('name', data.nome || loginField);
+                localStorage.setItem('permissao_nome', data.permissao_nome);
+
+                console.log('✅ Permissão salva:', data.permissao_nome); // debug
 
                 showMessage('Login realizado com sucesso!', 'success');
 
