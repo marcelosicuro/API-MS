@@ -1,11 +1,11 @@
-// routes/auth.js
+
 const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
-const router = express.Router();   // ← ESSA LINHA ESTAVA FALTANDO
+const router = express.Router();   
 
 // ====================== REGISTER ======================
 router.post('/register', async (req, res) => {

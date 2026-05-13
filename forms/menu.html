@@ -15,25 +15,16 @@
             <div class="px-3 py-4">
                 <h4 class="text-center mb-4">🚀 MS-LAB</h4>
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a href="menu.html" class="nav-link active"><i class="fas fa-home me-2"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="operadores.html" class="nav-link"><i class="fas fa-users me-2"></i> Operadores</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="objetos.html" class="nav-link"><i class="fas fa-box me-2"></i> Objetos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="logs.html" class="nav-link"><i class="fas fa-history me-2"></i> Logs</a>
-                    </li>
+                    <li class="nav-item"><a href="menu.html" class="nav-link active"><i class="fas fa-home me-2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a href="operadores.html" class="nav-link"><i class="fas fa-users me-2"></i> Operadores</a></li>
+                    <li class="nav-item"><a href="objetos.html" class="nav-link"><i class="fas fa-box me-2"></i> Objetos</a></li>
+                    <li class="nav-item"><a href="logs.html" class="nav-link"><i class="fas fa-history me-2"></i> Logs</a></li>
                 </ul>
             </div>
         </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="top-navbar navbar navbar-expand-lg navbar-dark px-4 py-3">
                 <div class="container-fluid">
                     <h5 class="text-white mb-0">Painel Administrativo</h5>
@@ -48,7 +39,6 @@
 
             <div class="content-area">
                 <div class="container-fluid">
-                    
                     <div class="row mt-4">
                         <div class="col-md-4">
                             <div class="card admin-card text-white bg-primary">
@@ -81,104 +71,58 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
-    const API_URL = 'http://localhost:3000';
+    <script src="config.js"></script>
+    <script>
+        async function carregarDashboard() {
+            const token = localStorage.getItem('token');
+            if (!token) return window.location.href = 'index.html';
 
-    async function carregarDashboard() {
-        const token = localStorage.getItem('token');
-        if (!token) return window.location.href = 'index.html';
-
-        // Saudação
-        const name = localStorage.getItem('name');
-        if (name) {
-            document.getElementById('userGreeting').textContent = `👋 ${name}`;
-        }
-
-        try {
-            // Valor Total dos Objetos
-            const res = await fetch(`${API_URL}/objetos/valorTotal`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                const valor = Number(data.valortotal || 0);
-                
-                document.getElementById('valorTotal').textContent = 
-                    valor.toLocaleString('pt-BR', { 
-                        style: 'currency', 
-                        currency: 'BRL' 
-                    });
-            } else {
-                document.getElementById('valorTotal').textContent = 'R$ 0,00';
-            }
-        } catch (error) {
-            console.error('Erro ao carregar valor total:', error);
-            document.getElementById('valorTotal').textContent = 'R$ 0,00';
-        }
-    }
-
-    window.onload = carregarDashboard;
-
-    function logout() {
-        localStorage.clear();
-        window.location.href = 'index.html';
-    }
-   <script>
-    const API_URL = 'http://localhost:3000';
-
-    async function carregarDashboard() {
-        const token = localStorage.getItem('token');
-        if (!token) return window.location.href = 'index.html';
-
-        // Saudação
-        const name = localStorage.getItem('name');
-        if (name) {
-            document.getElementById('userGreeting').textContent = `👋 ${name}`;
-        }
-
-        try {
-            // Total de Operadores
-            const resOperadores = await fetch(`${API_URL}/operadores/total`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (resOperadores.ok) {
-                const data = await resOperadores.json();
-                document.getElementById('totalOperadores').textContent = data.total;
+            // Saudação
+            const name = localStorage.getItem('name');
+            if (name) {
+                document.getElementById('userGreeting').textContent = `👋 ${name}`;
             }
 
-            // Total de Objetos (você já tem)
-            const resObjetos = await fetch(`${API_URL}/objetos/total`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (resObjetos.ok) {
-                const data = await resObjetos.json();
-                document.getElementById('totalObjetos').textContent = data.total;
-            }
+            try {
+                // Total de Operadores
+                const resOp = await fetch(`${API_URL}/operadores/total`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resOp.ok) {
+                    const data = await resOp.json();
+                    document.getElementById('totalOperadores').textContent = data.total;
+                }
 
-            // Valor Total (você já tem)
-            const resValor = await fetch(`${API_URL}/objetos/valorTotal`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (resValor.ok) {
-                const data = await resValor.json();
-                const valor = Number(data.valortotal || 0);
-                document.getElementById('valorTotal').textContent = 
-                    valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            }
+                // Total de Objetos
+                const resObj = await fetch(`${API_URL}/objetos/total`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resObj.ok) {
+                    const data = await resObj.json();
+                    document.getElementById('totalObjetos').textContent = data.total;
+                }
 
-        } catch (error) {
-            console.error('Erro ao carregar dashboard:', error);
+                // Valor Total
+                const resValor = await fetch(`${API_URL}/objetos/valorTotal`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resValor.ok) {
+                    const data = await resValor.json();
+                    const valor = Number(data.valortotal || 0);
+                    document.getElementById('valorTotal').textContent = 
+                        valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+            }
         }
-    }
 
-    window.onload = carregarDashboard;
+        window.onload = carregarDashboard;
 
-    function logout() {
-        localStorage.clear();
-        window.location.href = 'index.html';
-    }
-</script>
-        
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
 </html>
