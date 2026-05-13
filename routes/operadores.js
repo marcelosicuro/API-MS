@@ -115,4 +115,21 @@ router.get('/getNomeUsuario/:login', authenticateToken, async (req, res) => {
     }
 });
 
+// ====================== TOTAL DE OPERADORES ======================
+router.get('/total', authenticateToken, async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT COUNT(*) as total 
+            FROM operador
+        `);
+
+        res.json({ 
+            total: parseInt(result.rows[0].total) || 0 
+        });
+    } catch (error) {
+        console.error('Erro ao contar operadores:', error);
+        res.status(500).json({ error: 'Erro ao contar operadores' });
+    }
+});
+
 module.exports = router;

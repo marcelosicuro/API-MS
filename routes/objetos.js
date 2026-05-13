@@ -90,4 +90,21 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// ====================== TOTAL DE OBJETOS ======================
+router.get('/total', authenticateToken, async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT COUNT(*) as total 
+            FROM objeto
+        `);
+
+        res.json({ 
+            total: parseInt(result.rows[0].total) || 0 
+        });
+    } catch (error) {
+        console.error('Erro ao contar objetos:', error);
+        res.status(500).json({ error: 'Erro ao contar objetos' });
+    }
+});
+
 module.exports = router;
