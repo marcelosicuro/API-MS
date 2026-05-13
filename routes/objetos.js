@@ -18,14 +18,21 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/valorObjeto', authenticateToken, async (req, res) => {
-  try {
-    const result = await db.query('SELECT SUM(valor * quantidade) as valortotalobjeto FROM objeto');
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao somar valor dos objetos' });
-  }
+router.get('/valorTotal', authenticateToken, async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT COALESCE(SUM(valor * quantidade), 0) as valortotal 
+            FROM objeto
+        `);
+
+        res.json({ 
+            valortotal: parseFloat(result.rows[0].valortotal) || 0 
+        });
+
+    } catch (error) {
+        console.error('Erro ao calcular valor total dos objetos:', error);
+        res.status(500).json({ error: 'Erro ao calcular valor total' });
+    }
 });
 
 router.post('/incluirObjeto', authenticateToken, async (req, res) => {

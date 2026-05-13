@@ -93,4 +93,26 @@ router.delete('/:id', authenticateToken, hasPermission('admin'), async (req, res
   }
 });
 
+// ====================== BUSCAR NOME DO USUÁRIO (usado no Login) ======================
+router.get('/getNomeUsuario/:login', authenticateToken, async (req, res) => {
+    const { login } = req.params;
+
+    try {
+        const result = await db.query(`
+            SELECT nome 
+            FROM operador 
+            WHERE login = $1 
+            LIMIT 1`, [login]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Erro ao buscar nome do usuário:', error);
+        res.status(500).json({ error: 'Erro interno ao buscar nome' });
+    }
+});
+
 module.exports = router;

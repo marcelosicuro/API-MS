@@ -81,38 +81,50 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        async function registrarLog(token, login, pagina) {
-            try {
-                await fetch(`${API_URL}/logs`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ pagina, operador: login })
-                });
-            } catch (e) {
-                console.warn('Log não registrado', e);
-            }
+   <script>
+    const API_URL = 'http://localhost:3000';
+
+    async function carregarDashboard() {
+        const token = localStorage.getItem('token');
+        if (!token) return window.location.href = 'index.html';
+
+        // Saudação
+        const name = localStorage.getItem('name');
+        if (name) {
+            document.getElementById('userGreeting').textContent = `👋 ${name}`;
         }
 
-        window.onload = async function() {
-            const token = localStorage.getItem('token');
-            const login = localStorage.getItem('login');
-            const name = localStorage.getItem('name');
+        try {
+            // Valor Total dos Objetos
+            const res = await fetch(`${API_URL}/objetos/valorTotal`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-            if (name) {
-                document.getElementById('userGreeting').textContent = `👋 ${name}`;
+            if (res.ok) {
+                const data = await res.json();
+                const valor = Number(data.valortotal || 0);
+                
+                document.getElementById('valorTotal').textContent = 
+                    valor.toLocaleString('pt-BR', { 
+                        style: 'currency', 
+                        currency: 'BRL' 
+                    });
+            } else {
+                document.getElementById('valorTotal').textContent = 'R$ 0,00';
             }
+        } catch (error) {
+            console.error('Erro ao carregar valor total:', error);
+            document.getElementById('valorTotal').textContent = 'R$ 0,00';
+        }
+    }
 
-            if (token && login) {
-                await registrarLog(token, login, 'Dashboard (Menu)');
-            }
+    window.onload = carregarDashboard;
 
-            // Aqui você pode carregar os cards (total objetos, operadores, etc.)
-        };
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
 </script>
+        
 </body>
 </html>
