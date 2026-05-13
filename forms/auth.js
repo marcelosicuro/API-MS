@@ -1,5 +1,4 @@
-// forms/auth.js
-const API_URL = 'http://localhost:3000';
+//const API_URL = 'http://localhost:3000';
 
 async function authFetch(url, options = {}) {
     let token = localStorage.getItem('accessToken');
